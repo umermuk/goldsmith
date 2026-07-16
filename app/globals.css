@@ -3,25 +3,35 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #f9f5ed;
+  --foreground: #2c2416;
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm bg-gold-600 px-6 py-3 text-sm font-medium tracking-wide text-white transition hover:bg-gold-700 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-gold-400 bg-transparent px-6 py-3 text-sm font-medium tracking-wide text-gold-700 transition hover:bg-gold-100 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .input-field {
+    @apply w-full rounded-sm border border-ivory-300 bg-white px-4 py-2.5 text-sm text-ink outline-none transition placeholder:text-ink-light focus:border-gold-400 focus:ring-1 focus:ring-gold-300;
+  }
+
+  .label-field {
+    @apply mb-1.5 block text-sm font-medium text-ink-muted;
   }
 }
