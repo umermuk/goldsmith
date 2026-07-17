@@ -8,7 +8,7 @@ export default function AboutPage() {
       <h1 className="font-display text-4xl font-semibold text-ink">About Us</h1>
       <div className="mt-8 space-y-4 text-ink-muted leading-relaxed">
         <p>
-          Gold Smith is a personalized jewellery brand crafted for meaningful
+          MU Gold Smith is a personalized jewellery brand crafted for meaningful
           moments. From custom name necklaces to engraved cufflinks and Islamic
           calligraphy pieces, every order is made with care.
         </p>

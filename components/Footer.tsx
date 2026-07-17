@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Mail, Phone } from "lucide-react";
 
 export default function Footer() {
@@ -6,9 +7,13 @@ export default function Footer() {
     <footer className="border-t border-ivory-300 bg-ink text-ivory-100">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3 lg:px-8">
         <div>
-          <p className="font-display text-2xl font-semibold tracking-wide text-gold-300">
-            Gold Smith
-          </p>
+          <Image
+            src="/logo.jpeg"
+            alt="MU Gold Smith"
+            width={150}
+            height={102}
+            className="h-24 w-auto object-contain"
+          />
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-ivory-300">
             Premium personalized jewellery crafted for meaningful moments.
             Cash on Delivery across Pakistan.
@@ -84,7 +89,7 @@ export default function Footer() {
         </div>
       </div>
       <div className="border-t border-ivory-300/10 py-5 text-center text-xs text-ivory-300/70">
-        © {new Date().getFullYear()} Gold Smith. All rights reserved.
+        © {new Date().getFullYear()} MU Gold Smith. All rights reserved.
       </div>
     </footer>
   );

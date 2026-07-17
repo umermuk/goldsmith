@@ -6,7 +6,7 @@ export default function WhatsAppButton() {
   const number =
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923000000000";
   const href = `https://wa.me/${number}?text=${encodeURIComponent(
-    "Hi Gold Smith! I'd like to know more about your jewellery."
+    "Hi MU Gold Smith! I'd like to know more about your jewellery."
   )}`;
 
   return (

@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     const resend = new Resend(apiKey);
-    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "Gold Smith";
+    const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "MU Gold Smith";
 
     const html = `
       <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2C2416;">

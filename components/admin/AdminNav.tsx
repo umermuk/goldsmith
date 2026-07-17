@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
@@ -36,9 +37,15 @@ export default function AdminNav() {
         <div className="border-b border-ivory-300 px-5 py-5">
           <Link
             href="/admin/dashboard"
-            className="font-display text-xl font-semibold text-gold-700"
+            aria-label="MU Gold Smith admin dashboard"
           >
-            Gold Smith
+            <Image
+              src="/logo.jpeg"
+              alt="MU Gold Smith"
+              width={120}
+              height={82}
+              className="h-16 w-auto object-contain"
+            />
           </Link>
           <p className="text-xs text-ink-light">Admin Panel</p>
         </div>

@@ -43,7 +43,7 @@ export default async function AdminDashboardPage() {
     <div>
       <h1 className="font-display text-3xl font-semibold text-ink">Dashboard</h1>
       <p className="mt-1 text-sm text-ink-muted">
-        Overview of your Gold Smith store
+        Overview of your MU Gold Smith store
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-3">

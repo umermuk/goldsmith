@@ -64,7 +64,7 @@ export default async function HomePage() {
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1600&q=80"
-            alt="Gold Smith personalized jewellery"
+            alt="MU Gold Smith personalized jewellery"
             fill
             priority
             className="object-cover opacity-40"
@@ -74,7 +74,7 @@ export default async function HomePage() {
         </div>
         <div className="relative mx-auto flex min-h-[70vh] max-w-7xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
           <p className="font-display text-5xl font-semibold tracking-wide text-ink sm:text-6xl md:text-7xl">
-            Gold Smith
+            MU Gold Smith
           </p>
           <h1 className="mt-4 max-w-md font-display text-2xl font-medium text-ink-muted sm:text-3xl">
             Personalized jewellery for every story

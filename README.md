@@ -1,6 +1,6 @@
-# Gold Smith — Personalized Jewellery E-commerce
+# MU Gold Smith — Personalized Jewellery E-commerce
 
-Next.js (App Router) + Supabase COD storefront and admin panel for **Gold Smith**.
+Next.js (App Router) + Supabase COD storefront and admin panel for **MU Gold Smith**.
 
 ## Setup
 
@@ -15,7 +15,7 @@ SUPABASE_SERVICE_ROLE_KEY=...
 RESEND_API_KEY=           # optional until email is needed
 ADMIN_NOTIFICATION_EMAIL= # your email for order alerts
 NEXT_PUBLIC_WHATSAPP_NUMBER=923000000000
-NEXT_PUBLIC_SITE_NAME=Gold Smith
+NEXT_PUBLIC_SITE_NAME=MU Gold Smith
 ```
 
 ### 2. Run the SQL migration

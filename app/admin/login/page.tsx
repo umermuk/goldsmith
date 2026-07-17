@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
           href="/"
           className="font-display text-2xl font-semibold text-gold-700"
         >
-          Gold Smith
+          MU Gold Smith
         </Link>
         <h1 className="mt-2 text-lg font-medium text-ink">Admin Login</h1>
         <p className="mt-1 text-sm text-ink-muted">

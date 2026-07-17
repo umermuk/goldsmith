@@ -18,16 +18,20 @@ const sans = DM_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Gold Smith | Personalized Jewellery",
-    template: "%s | Gold Smith",
+    default: "MU Gold Smith | Personalized Jewellery",
+    template: "%s | MU Gold Smith",
   },
   description:
     "Premium personalized jewellery in Pakistan. Custom necklaces, bracelets, rings, cufflinks, wallets & Islamic jewellery. Cash on Delivery.",
   openGraph: {
-    title: "Gold Smith | Personalized Jewellery",
+    title: "MU Gold Smith | Personalized Jewellery",
     description:
       "Premium personalized jewellery. Custom pieces with Cash on Delivery across Pakistan.",
     type: "website",
+  },
+  icons: {
+    icon: "/icon.jpg",
+    apple: "/icon.jpg",
   },
 };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Menu, X, Search } from "lucide-react";
 
@@ -16,11 +17,16 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-ivory-300/80 bg-ivory-50/95 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <Link href="/" className="group">
-          <span className="font-display text-2xl font-semibold tracking-wide text-ink transition group-hover:text-gold-600 sm:text-3xl">
-            Gold Smith
-          </span>
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
+        <Link href="/" className="group" aria-label="MU Gold Smith home">
+          <Image
+            src="/logo.jpeg"
+            alt="MU Gold Smith"
+            width={112}
+            height={76}
+            priority
+            className="h-14 w-auto object-contain sm:h-16"
+          />
         </Link>
 
         <nav className="hidden items-center gap-8 md:flex">
