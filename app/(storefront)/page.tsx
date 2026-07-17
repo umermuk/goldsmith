@@ -73,9 +73,13 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-ivory-50 via-ivory-50/85 to-transparent" />
         </div>
         <div className="relative mx-auto flex min-h-[70vh] max-w-7xl flex-col justify-center px-4 py-20 sm:px-6 lg:px-8">
-          <p className="font-display text-5xl font-semibold tracking-wide text-ink sm:text-6xl md:text-7xl">
-            MU Gold Smith
-          </p>
+          <Image
+            src="/logo.png"
+            alt="MU Gold Smith"
+            width={280}
+            height={61}
+            className="h-auto w-48 object-contain sm:w-60"
+          />
           <h1 className="mt-4 max-w-md font-display text-2xl font-medium text-ink-muted sm:text-3xl">
             Personalized jewellery for every story
           </h1>

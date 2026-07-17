@@ -8,11 +8,11 @@ export default function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-3 lg:px-8">
         <div>
           <Image
-            src="/logo.jpeg"
+            src="/logo.png"
             alt="MU Gold Smith"
-            width={150}
-            height={102}
-            className="h-24 w-auto object-contain"
+            width={220}
+            height={48}
+            className="h-14 w-auto rounded-sm bg-ivory-50 p-2 object-contain"
           />
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-ivory-300">
             Premium personalized jewellery crafted for meaningful moments.

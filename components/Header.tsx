@@ -20,12 +20,12 @@ export default function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
         <Link href="/" className="group" aria-label="MU Gold Smith home">
           <Image
-            src="/logo.jpeg"
+            src="/logo.png"
             alt="MU Gold Smith"
-            width={112}
-            height={76}
+            width={210}
+            height={46}
             priority
-            className="h-14 w-auto object-contain sm:h-16"
+            className="h-10 w-auto object-contain sm:h-11"
           />
         </Link>
 

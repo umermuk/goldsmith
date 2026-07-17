@@ -40,11 +40,11 @@ export default function AdminNav() {
             aria-label="MU Gold Smith admin dashboard"
           >
             <Image
-              src="/logo.jpeg"
+              src="/logo.png"
               alt="MU Gold Smith"
-              width={120}
-              height={82}
-              className="h-16 w-auto object-contain"
+              width={170}
+              height={37}
+              className="h-9 w-auto object-contain"
             />
           </Link>
           <p className="text-xs text-ink-light">Admin Panel</p>
