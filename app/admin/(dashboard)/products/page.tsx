@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import ProductsManager from "@/components/admin/ProductsManager";
 import type { Product } from "@/types/database";

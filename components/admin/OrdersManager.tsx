@@ -375,7 +375,7 @@ export default function OrdersManager({
         return;
       }
 
-      function parseCSVRow(rowStr: string): string[] {
+      const parseCSVRow = (rowStr: string): string[] => {
         const result: string[] = [];
         let insideQuotes = false;
         let currentCell = "";

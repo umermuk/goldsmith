@@ -4,8 +4,6 @@ import { Mail, Phone, MessageCircle } from "lucide-react";
 export const metadata: Metadata = { title: "Contact Us" };
 
 export default function ContactPage() {
-  const wa = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923000000000";
-
   return (
     <article className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
       <h1 className="font-display text-4xl font-semibold text-ink">

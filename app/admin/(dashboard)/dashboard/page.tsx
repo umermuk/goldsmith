@@ -8,9 +8,7 @@ import {
   CheckCircle2,
   Truck,
   FolderTree,
-  XCircle,
   ArrowUpRight,
-  MessageCircle,
   Eye,
   Plus,
 } from "lucide-react";

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Menu, X, Search } from "lucide-react";
+import { Menu, X, Search, ShoppingBag } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 const NAV = [
   { href: "/collections/women", label: "Women" },
@@ -14,9 +15,10 @@ const NAV = [
 
 export default function Header() {
   const [open, setOpen] = useState(false);
+  const { totalCount, openCart } = useCart();
 
   return (
-    <header className="sticky top-0 z-50 border-b border-ivory-300/80 bg-ivory-50/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-ivory-300/80 bg-ivory-50/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
         <Link href="/" className="group" aria-label="MU Gold Smith home">
           <Image
@@ -49,6 +51,22 @@ export default function Header() {
           >
             <Search className="h-5 w-5" />
           </Link>
+
+          {/* Cart Icon Button with Counter Badge */}
+          <button
+            type="button"
+            onClick={openCart}
+            className="relative rounded-full p-2 text-ink-muted transition hover:bg-ivory-200 hover:text-ink"
+            aria-label="Shopping Cart"
+          >
+            <ShoppingBag className="h-5 w-5 text-ink" />
+            {totalCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-gold-600 text-[10px] font-bold text-white shadow">
+                {totalCount}
+              </span>
+            )}
+          </button>
+
           <button
             type="button"
             className="text-ink md:hidden"

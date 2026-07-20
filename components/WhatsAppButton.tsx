@@ -3,8 +3,6 @@
 import { MessageCircle } from "lucide-react";
 
 export default function WhatsAppButton() {
-  const number =
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "923353490612";
   const href =
     process.env.NEXT_PUBLIC_WHATSAPP_LINK ||
     "https://wa.me/message/TGENSLM6PME7C1";

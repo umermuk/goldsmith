@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Minus, Plus } from "lucide-react";
+import { Minus, Plus, ShoppingBag } from "lucide-react";
 import OrderModal from "@/components/OrderModal";
 import { formatPKR } from "@/lib/format";
 import type { Product, ProductVariant } from "@/types/database";
+import { useCart } from "@/context/CartContext";
 
 interface ProductPurchaseProps {
   product: Product;
@@ -21,6 +22,7 @@ export default function ProductPurchase({
   const [personalization, setPersonalization] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [modalOpen, setModalOpen] = useState(false);
+  const { addToCart } = useCart();
 
   const unitPrice = useMemo(() => {
     if (selectedVariant?.price_override != null) {
@@ -43,6 +45,20 @@ export default function ProductPurchase({
     }
     return map;
   }, [variants]);
+
+  function handleAddToCart() {
+    addToCart({
+      productId: product.id,
+      productTitle: product.title,
+      unitPrice,
+      deliveryCharges:
+        product.delivery_charges != null ? Number(product.delivery_charges) : 200,
+      variantId: selectedVariant?.id ?? null,
+      variantName: selectedVariant?.variant_name ?? null,
+      personalizationText: personalization,
+      quantity,
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -129,14 +145,26 @@ export default function ProductPurchase({
         </div>
       </div>
 
-      <button
-        type="button"
-        className="btn-primary w-full sm:w-auto"
-        disabled={soldOut}
-        onClick={() => setModalOpen(true)}
-      >
-        Order Now — COD
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button
+          type="button"
+          className="rounded-sm border border-gold-600 bg-gold-50 py-3 px-6 text-center text-sm font-medium text-gold-800 transition hover:bg-gold-100 flex-1 inline-flex items-center justify-center gap-2 shadow-xs"
+          disabled={soldOut}
+          onClick={handleAddToCart}
+        >
+          <ShoppingBag className="h-4 w-4" />
+          Add to Cart
+        </button>
+
+        <button
+          type="button"
+          className="btn-primary flex-1 py-3"
+          disabled={soldOut}
+          onClick={() => setModalOpen(true)}
+        >
+          Buy Now — COD
+        </button>
+      </div>
 
       <div className="prose prose-sm max-w-none border-t border-ivory-300 pt-6 text-ink-muted">
         <h2 className="font-display text-xl font-semibold text-ink">
