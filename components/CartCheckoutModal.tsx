@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { X, Loader2, CheckCircle2, ShieldCheck } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { useCart } from "@/context/CartContext";
 
@@ -38,8 +37,6 @@ export default function CartCheckoutModal({
     setError(null);
     setLoading(true);
 
-    const supabase = createClient();
-
     try {
       // 1. Insert an order entry into Supabase for each cart item or combined summary order
       // We will create orders for each item in the cart or bulk insert
@@ -60,14 +57,19 @@ export default function CartCheckoutModal({
           : `Cart order item: ${item.productTitle}`,
       }));
 
-      const { data, error: insertError } = await supabase
-        .from("orders")
-        .insert(orderRecords)
-        .select();
+      const res = await fetch("/api/place-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderRecords),
+      });
 
-      if (insertError) {
-        throw new Error(insertError.message);
+      const result = await res.json();
+
+      if (!res.ok || result.error) {
+        throw new Error(result.error || "Failed to place order.");
       }
+
+      const data = result.data;
 
       // 2. Trigger Nodemailer email notification
       const firstItem = items[0];

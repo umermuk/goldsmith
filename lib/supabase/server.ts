@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 
 if (typeof console !== "undefined" && console.warn) {
@@ -37,4 +38,19 @@ export function createClient() {
       },
     }
   );
+}
+
+// Bypasses Row Level Security (RLS) for storefront customer order creation
+export function createAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+  return createSupabaseClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
 }

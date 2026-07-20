@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { X, Loader2, CheckCircle2 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 import { formatPKR } from "@/lib/format";
 import type { OrderFormData } from "@/types/database";
 
@@ -81,7 +80,6 @@ export default function OrderModal({
     }
 
     setSubmitting(true);
-    const supabase = createClient();
 
     const orderPayload = {
       customer_name: customerName.trim(),
@@ -100,17 +98,21 @@ export default function OrderModal({
       status: "pending",
     };
 
-    const { data, error: insertError } = await supabase
-      .from("orders")
-      .insert(orderPayload)
-      .select("id")
-      .single();
+    const res = await fetch("/api/place-order", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderPayload),
+    });
 
-    if (insertError) {
+    const result = await res.json();
+
+    if (!res.ok || result.error) {
       setSubmitting(false);
-      setError(insertError.message || "Failed to place order. Please try again.");
+      setError(result.error || "Failed to place order. Please try again.");
       return;
     }
+
+    const insertedData = result.data?.[0];
 
     const emailBody: OrderFormData = {
       ...orderPayload,
@@ -122,7 +124,7 @@ export default function OrderModal({
       await fetch("/api/send-order-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...emailBody, order_id: data?.id }),
+        body: JSON.stringify({ ...emailBody, order_id: insertedData?.id }),
       });
     } catch {
       // Best-effort email — order already saved
