@@ -12,6 +12,7 @@ interface OrderModalProps {
   productId: string;
   productTitle: string;
   unitPrice: number;
+  deliveryCharges?: number;
   variantId: string | null;
   variantName: string | null;
   personalizationText: string;
@@ -25,6 +26,7 @@ export default function OrderModal({
   productId,
   productTitle,
   unitPrice,
+  deliveryCharges = 200,
   variantId,
   variantName,
   personalizationText,
@@ -66,7 +68,8 @@ export default function OrderModal({
 
   if (!open) return null;
 
-  const total = unitPrice * quantity;
+  const subtotal = unitPrice * quantity;
+  const total = subtotal + (deliveryCharges || 0);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -91,6 +94,7 @@ export default function OrderModal({
         ? personalization.trim()
         : null,
       quantity,
+      delivery_charges: deliveryCharges || 0,
       total_price: total,
       notes: notes.trim() || null,
       status: "pending",
@@ -175,18 +179,25 @@ export default function OrderModal({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 px-5 py-6">
-            <div className="rounded-sm bg-ivory-200/60 px-4 py-3 text-sm">
+            <div className="rounded-sm bg-ivory-200/60 px-4 py-3 text-sm space-y-1">
               <p className="font-medium text-ink">{productTitle}</p>
               {variantName && (
-                <p className="text-ink-muted">Variant: {variantName}</p>
+                <p className="text-xs text-ink-muted">Variant: {variantName}</p>
               )}
-              <p className="mt-1 text-gold-700">
-                {formatPKR(unitPrice)} × {quantity} ={" "}
-                <strong>{formatPKR(total)}</strong>
-              </p>
-              <p className="mt-1 text-xs text-ink-light">
-                Payment: Cash on Delivery (COD)
-              </p>
+              <div className="border-t border-ivory-300/60 pt-2 text-xs space-y-1">
+                <div className="flex justify-between text-ink-muted">
+                  <span>Subtotal ({formatPKR(unitPrice)} × {quantity})</span>
+                  <span>{formatPKR(subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-ink-muted">
+                  <span>Delivery Charges</span>
+                  <span>{deliveryCharges ? formatPKR(deliveryCharges) : "Free"}</span>
+                </div>
+                <div className="flex justify-between pt-1 font-semibold text-gold-800 text-sm">
+                  <span>Total Amount (COD)</span>
+                  <span>{formatPKR(total)}</span>
+                </div>
+              </div>
             </div>
 
             <div>

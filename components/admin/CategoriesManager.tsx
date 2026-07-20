@@ -1,11 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
-import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Pencil,
+  Trash2,
+  Search,
+  X,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { PARENT_CATEGORIES, slugify } from "@/lib/format";
 import type { Category } from "@/types/database";
+
+const PAGE_SIZE = 10;
 
 export default function CategoriesManager({
   initial,
@@ -13,6 +24,9 @@ export default function CategoriesManager({
   initial: Category[];
 }) {
   const [categories, setCategories] = useState(initial);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
   const [editing, setEditing] = useState<Category | null>(null);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
@@ -22,6 +36,34 @@ export default function CategoriesManager({
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Search & Filter Logic
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return categories;
+    const q = searchQuery.toLowerCase().trim();
+    return categories.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        c.slug.toLowerCase().includes(q) ||
+        (c.parent_category && c.parent_category.toLowerCase().includes(q))
+    );
+  }, [categories, searchQuery]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery]);
+
+  const totalPages = Math.ceil(filteredCategories.length / PAGE_SIZE) || 1;
+  const paginatedCategories = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return filteredCategories.slice(start, start + PAGE_SIZE);
+  }, [filteredCategories, currentPage]);
+
+  const startRecord = (currentPage - 1) * PAGE_SIZE + 1;
+  const endRecord = Math.min(
+    currentPage * PAGE_SIZE,
+    filteredCategories.length
+  );
 
   function openCreate() {
     setCreating(true);
@@ -123,17 +165,39 @@ export default function CategoriesManager({
 
   return (
     <div className="space-y-6">
-      <button type="button" onClick={openCreate} className="btn-primary">
-        <Plus className="h-4 w-4" />
-        Add Category
-      </button>
+      {/* Search & Header Toolbar */}
+      <div className="flex flex-col gap-4 bg-white p-4 rounded-sm border border-ivory-300 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-ink-muted" />
+          <input
+            type="text"
+            placeholder="Search category by name, parent group, or slug..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input-field pl-9 pr-8 text-sm"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery("")}
+              className="absolute right-2.5 top-2.5 text-ink-muted hover:text-ink"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        <button type="button" onClick={openCreate} className="btn-primary shrink-0">
+          <Plus className="h-4 w-4" />
+          Add Category
+        </button>
+      </div>
 
       {showForm && (
         <form
           onSubmit={onSave}
-          className="rounded-sm border border-ivory-300 bg-white p-6 space-y-4"
+          className="rounded-sm border border-ivory-300 bg-white p-6 space-y-4 shadow-sm"
         >
-          <h2 className="font-medium">
+          <h2 className="font-medium text-ink">
             {editing ? "Edit Category" : "New Category"}
           </h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -186,9 +250,7 @@ export default function CategoriesManager({
               )}
             </div>
           </div>
-          {error && (
-            <p className="text-sm text-red-600">{error}</p>
-          )}
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <div className="flex gap-2">
             <button type="submit" className="btn-primary" disabled={saving}>
               {saving ? (
@@ -204,12 +266,27 @@ export default function CategoriesManager({
         </form>
       )}
 
-      {!categories.length ? (
+      {/* Info counter */}
+      <div className="flex items-center justify-between px-1 text-xs text-ink-muted">
+        <span>
+          Showing {filteredCategories.length === 0 ? 0 : startRecord}–
+          {endRecord} of {filteredCategories.length} categories
+          {categories.length !== filteredCategories.length && (
+            <span className="ml-1 text-gold-700">
+              (filtered from {categories.length} total)
+            </span>
+          )}
+        </span>
+        <span>Page {currentPage} of {totalPages}</span>
+      </div>
+
+      {/* Table */}
+      {!filteredCategories.length ? (
         <div className="rounded-sm border border-dashed border-ivory-300 bg-white py-16 text-center text-ink-muted">
-          No categories yet — click Add Category to get started
+          No matching categories found.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-sm border border-ivory-300 bg-white">
+        <div className="overflow-x-auto rounded-sm border border-ivory-300 bg-white shadow-sm">
           <table className="w-full min-w-[560px] text-left text-sm">
             <thead className="border-b border-ivory-300 bg-ivory-50 text-xs uppercase text-ink-muted">
               <tr>
@@ -217,12 +294,12 @@ export default function CategoriesManager({
                 <th className="px-4 py-3">Name</th>
                 <th className="px-4 py-3">Parent</th>
                 <th className="px-4 py-3">Slug</th>
-                <th className="px-4 py-3">Actions</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {categories.map((cat) => (
-                <tr key={cat.id} className="border-b border-ivory-200">
+              {paginatedCategories.map((cat) => (
+                <tr key={cat.id} className="border-b border-ivory-200 hover:bg-ivory-50 transition">
                   <td className="px-4 py-3">
                     <div className="relative h-12 w-12 overflow-hidden rounded-sm bg-ivory-200">
                       {cat.image_url && (
@@ -236,24 +313,26 @@ export default function CategoriesManager({
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3 font-medium">{cat.name}</td>
+                  <td className="px-4 py-3 font-medium text-ink">{cat.name}</td>
                   <td className="px-4 py-3 text-ink-muted">
                     {cat.parent_category || "—"}
                   </td>
-                  <td className="px-4 py-3 text-ink-light">{cat.slug}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
+                  <td className="px-4 py-3 text-ink-light text-xs font-mono">{cat.slug}</td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex items-center justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => openEdit(cat)}
-                        className="text-gold-600"
+                        className="rounded border border-gold-300 p-1 text-gold-700 hover:bg-gold-50 transition"
+                        title="Edit category"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
                         onClick={() => onDelete(cat)}
-                        className="text-red-600"
+                        className="rounded border border-red-200 p-1 text-red-600 hover:bg-red-50 transition"
+                        title="Delete category"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -263,6 +342,55 @@ export default function CategoriesManager({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination Footer */}
+      {totalPages > 1 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-3 rounded-sm border border-ivory-300 shadow-sm">
+          <p className="text-xs text-ink-muted">
+            Page <span className="font-semibold text-ink">{currentPage}</span> of{" "}
+            <span className="font-semibold text-ink">{totalPages}</span>
+          </p>
+
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
+              className="inline-flex items-center gap-1 rounded border border-ivory-300 px-2.5 py-1 text-xs font-medium text-ink transition hover:bg-ivory-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Previous
+            </button>
+
+            <div className="flex items-center gap-1 px-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`h-7 min-w-[28px] rounded text-xs font-medium px-2 transition ${
+                    currentPage === page
+                      ? "bg-gold-700 text-white font-semibold"
+                      : "text-ink hover:bg-ivory-200"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="inline-flex items-center gap-1 rounded border border-ivory-300 px-2.5 py-1 text-xs font-medium text-ink transition hover:bg-ivory-100 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       )}
     </div>

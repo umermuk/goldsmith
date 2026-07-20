@@ -46,6 +46,11 @@ export default function ProductForm({
   const [compareAt, setCompareAt] = useState(
     product?.compare_at_price?.toString() || ""
   );
+  const [deliveryCharges, setDeliveryCharges] = useState(
+    product?.delivery_charges != null
+      ? product.delivery_charges.toString()
+      : "200"
+  );
   const [categoryId, setCategoryId] = useState(product?.category_id || "");
   const [isPersonalized, setIsPersonalized] = useState(
     product?.is_personalized || false
@@ -130,6 +135,7 @@ export default function ProductForm({
       description: description.trim(),
       price: parseFloat(price) || 0,
       compare_at_price: compareAt ? parseFloat(compareAt) : null,
+      delivery_charges: deliveryCharges !== "" ? parseFloat(deliveryCharges) : 0,
       category_id: categoryId || null,
       is_personalized: isPersonalized,
       is_active: isActive,
@@ -265,7 +271,7 @@ export default function ProductForm({
             onChange={(e) => setDescription(e.target.value)}
           />
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <div>
             <label className="label-field" htmlFor="price">
               Price (PKR) *
@@ -293,6 +299,21 @@ export default function ProductForm({
               className="input-field"
               value={compareAt}
               onChange={(e) => setCompareAt(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label-field" htmlFor="delivery_charges">
+              Delivery Charges (PKR)
+            </label>
+            <input
+              id="delivery_charges"
+              type="number"
+              min={0}
+              step="1"
+              className="input-field"
+              placeholder="e.g. 200 (0 for Free)"
+              value={deliveryCharges}
+              onChange={(e) => setDeliveryCharges(e.target.value)}
             />
           </div>
         </div>

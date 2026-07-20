@@ -17,15 +17,15 @@ export default function ContactPage() {
       <ul className="mt-10 space-y-5">
         <li className="flex items-center gap-3 text-ink-muted">
           <Phone className="h-5 w-5 text-gold-500" />
-          <span>+92 300 0000000</span>
+          <span>+92 335 3490612</span>
         </li>
         <li className="flex items-center gap-3 text-ink-muted">
           <Mail className="h-5 w-5 text-gold-500" />
-          <span>hello@goldsmith.pk</span>
+          <span>mugoldsmith93@gmail.com</span>
         </li>
         <li>
           <a
-            href={`https://wa.me/${wa}`}
+            href="https://wa.me/message/TGENSLM6PME7C1"
             target="_blank"
             rel="noopener noreferrer"
             className="btn-primary inline-flex"

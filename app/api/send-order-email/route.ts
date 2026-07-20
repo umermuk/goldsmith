@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import nodemailer from "nodemailer";
 import { Resend } from "resend";
 import { formatPKR } from "@/lib/format";
 
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest) {
       variant_name,
       personalization_text,
       quantity,
+      delivery_charges,
       total_price,
       notes,
     } = body;
@@ -26,66 +28,103 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.RESEND_API_KEY;
-    const to = process.env.ADMIN_NOTIFICATION_EMAIL;
+    const smtpUser = process.env.SMTP_USER;
+    const smtpPass = process.env.SMTP_PASS;
+    const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+    const smtpPort = parseInt(process.env.SMTP_PORT || "587", 10);
+    const resendApiKey = process.env.RESEND_API_KEY;
+    const toEmail = process.env.ADMIN_NOTIFICATION_EMAIL || smtpUser;
 
-    if (!apiKey || !to) {
+    if (!toEmail) {
       console.warn(
-        "[send-order-email] RESEND_API_KEY or ADMIN_NOTIFICATION_EMAIL not set — skipping email"
+        "[send-order-email] ADMIN_NOTIFICATION_EMAIL / SMTP_USER not set — skipping email"
       );
       return NextResponse.json({
         ok: true,
         skipped: true,
-        message: "Email skipped — configure RESEND_API_KEY and ADMIN_NOTIFICATION_EMAIL",
+        message: "Email skipped — configure SMTP credentials or ADMIN_NOTIFICATION_EMAIL in .env.local",
       });
     }
 
-    const resend = new Resend(apiKey);
     const siteName = process.env.NEXT_PUBLIC_SITE_NAME || "MU Gold Smith";
 
     const html = `
-      <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2C2416;">
-        <h1 style="color: #8B7344; font-size: 24px;">New COD Order — ${siteName}</h1>
-        <p style="color: #5C5346;">A customer placed a Cash on Delivery order.</p>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-family: sans-serif; font-size: 14px;">
-          <tr><td style="padding: 8px 0; color: #8A8174;">Order ID</td><td style="padding: 8px 0;">${order_id || "—"}</td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Customer</td><td style="padding: 8px 0;"><strong>${escapeHtml(customer_name)}</strong></td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Phone</td><td style="padding: 8px 0;">${escapeHtml(phone)}</td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Address</td><td style="padding: 8px 0;">${escapeHtml(address)}</td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">City</td><td style="padding: 8px 0;">${escapeHtml(city)}</td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Product</td><td style="padding: 8px 0;">${escapeHtml(product_title)}</td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Variant</td><td style="padding: 8px 0;">${escapeHtml(variant_name || "—")}</td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Personalization</td><td style="padding: 8px 0;">${escapeHtml(personalization_text || "—")}</td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Quantity</td><td style="padding: 8px 0;">${quantity}</td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Total</td><td style="padding: 8px 0;"><strong>${formatPKR(total_price)}</strong></td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Notes</td><td style="padding: 8px 0;">${escapeHtml(notes || "—")}</td></tr>
-          <tr><td style="padding: 8px 0; color: #8A8174;">Payment</td><td style="padding: 8px 0;">Cash on Delivery</td></tr>
+      <div style="font-family: Georgia, serif; max-width: 560px; margin: 0 auto; color: #2C2416; border: 1px solid #E6E1D7; padding: 24px; border-radius: 8px;">
+        <h1 style="color: #8B7344; font-size: 22px; margin-top: 0;">🛍️ New COD Order — ${escapeHtml(siteName)}</h1>
+        <p style="color: #5C5346; font-size: 14px;">A new order has been placed on your store.</p>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 16px; font-family: sans-serif; font-size: 14px;">
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174; width: 140px;">Order ID</td><td style="padding: 8px 0; font-weight: bold;">${order_id || "—"}</td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Customer Name</td><td style="padding: 8px 0;"><strong>${escapeHtml(customer_name)}</strong></td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Phone Number</td><td style="padding: 8px 0;"><a href="tel:${escapeHtml(phone)}" style="color: #8B7344;">${escapeHtml(phone)}</a></td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Product</td><td style="padding: 8px 0; font-weight: bold;">${escapeHtml(product_title)}</td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Variant</td><td style="padding: 8px 0;">${escapeHtml(variant_name || "Standard")}</td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Personalization</td><td style="padding: 8px 0;">${escapeHtml(personalization_text || "None")}</td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Quantity</td><td style="padding: 8px 0;">${quantity}</td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Delivery Charges</td><td style="padding: 8px 0;">${delivery_charges != null ? formatPKR(delivery_charges) : "Rs. 200"}</td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Total Amount</td><td style="padding: 8px 0; color: #B45309; font-size: 16px; font-weight: bold;">${formatPKR(total_price)} (COD)</td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Address</td><td style="padding: 8px 0;">${escapeHtml(address)}, ${escapeHtml(city)}</td></tr>
+          <tr style="border-bottom: 1px solid #EEE;"><td style="padding: 8px 0; color: #8A8174;">Notes</td><td style="padding: 8px 0;">${escapeHtml(notes || "—")}</td></tr>
         </table>
       </div>
     `;
 
-    const { error } = await resend.emails.send({
-      from: `${siteName} <onboarding@resend.dev>`,
-      to: [to],
-      subject: `New COD Order: ${customer_name} — ${formatPKR(total_price)}`,
-      html,
-    });
+    const subject = `New COD Order: ${customer_name} — ${formatPKR(total_price)}`;
 
-    if (error) {
-      console.error("[send-order-email]", error);
-      return NextResponse.json(
-        { error: error.message || "Failed to send email" },
-        { status: 502 }
-      );
+    // 1. Try Gmail / Nodemailer SMTP first if user provided credentials
+    if (smtpUser && smtpPass) {
+      const transporter = nodemailer.createTransport({
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465, // true for 465, false for 587
+        auth: {
+          user: smtpUser,
+          pass: smtpPass,
+        },
+      });
+
+      await transporter.sendMail({
+        from: `"${siteName}" <${smtpUser}>`,
+        to: toEmail,
+        subject,
+        html,
+      });
+
+      return NextResponse.json({ ok: true, method: "nodemailer" });
     }
 
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("[send-order-email]", err);
-    return NextResponse.json(
-      { error: "Unexpected error sending email" },
-      { status: 500 }
+    // 2. Fallback to Resend API key if set
+    if (resendApiKey) {
+      const resend = new Resend(resendApiKey);
+      const { error } = await resend.emails.send({
+        from: `${siteName} <onboarding@resend.dev>`,
+        to: [toEmail],
+        subject,
+        html,
+      });
+
+      if (error) {
+        console.error("[send-order-email] Resend error:", error);
+        return NextResponse.json(
+          { error: error.message || "Failed to send email via Resend" },
+          { status: 502 }
+        );
+      }
+
+      return NextResponse.json({ ok: true, method: "resend" });
+    }
+
+    console.warn(
+      "[send-order-email] No SMTP_USER/PASS or RESEND_API_KEY provided — skipping email"
     );
+    return NextResponse.json({
+      ok: true,
+      skipped: true,
+      message: "Please configure SMTP_USER & SMTP_PASS or RESEND_API_KEY in .env.local",
+    });
+  } catch (err: unknown) {
+    const errorMsg = err instanceof Error ? err.message : "Unexpected error";
+    console.error("[send-order-email] Exception:", err);
+    return NextResponse.json({ error: errorMsg }, { status: 500 });
   }
 }
 

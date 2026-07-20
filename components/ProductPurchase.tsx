@@ -153,6 +153,9 @@ export default function ProductPurchase({
         productId={product.id}
         productTitle={product.title}
         unitPrice={unitPrice}
+        deliveryCharges={
+          product.delivery_charges != null ? Number(product.delivery_charges) : 200
+        }
         variantId={selectedVariant?.id ?? null}
         variantName={selectedVariant?.variant_name ?? null}
         personalizationText={personalization}

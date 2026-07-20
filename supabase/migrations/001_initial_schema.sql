@@ -270,7 +270,7 @@ insert into public.product_images (product_id, image_url, sort_order) values
   ('b2000001-0000-4000-8000-000000000001', 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=1000&q=80', 0),
   ('b2000001-0000-4000-8000-000000000001', 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=1000&q=80', 1),
   ('b2000001-0000-4000-8000-000000000002', 'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1000&q=80', 0),
-  ('b2000001-0000-4000-8000-000000000003', 'https://images.unsplash.com/photo-1573408301185-91496d5a9f35?w=1000&q=80', 0),
+  ('b2000001-0000-4000-8000-000000000003', 'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1000&q=80', 0),
   ('b2000001-0000-4000-8000-000000000004', 'https://images.unsplash.com/photo-1606760227091-3dd870d97f1d?w=1000&q=80', 0),
   ('b2000001-0000-4000-8000-000000000005', 'https://images.unsplash.com/photo-1617038260897-41a1f14a8ca0?w=1000&q=80', 0),
   ('b2000001-0000-4000-8000-000000000006', 'https://images.unsplash.com/photo-1596944924616-7b38e7cfac36?w=1000&q=80', 0),

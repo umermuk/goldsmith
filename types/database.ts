@@ -22,6 +22,7 @@ export interface Product {
   description: string;
   price: number;
   compare_at_price: number | null;
+  delivery_charges?: number | null;
   category_id: string | null;
   is_personalized: boolean;
   is_active: boolean;
@@ -56,6 +57,7 @@ export interface Order {
   variant_id: string | null;
   personalization_text: string | null;
   quantity: number;
+  delivery_charges?: number | null;
   total_price: number;
   status: OrderStatus;
   notes: string | null;
@@ -82,6 +84,7 @@ export interface OrderFormData {
   variant_id: string | null;
   personalization_text: string | null;
   quantity: number;
+  delivery_charges?: number;
   total_price: number;
   notes: string | null;
   product_title?: string;
