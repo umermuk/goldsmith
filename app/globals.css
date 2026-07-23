@@ -34,4 +34,16 @@ body {
   .label-field {
     @apply mb-1.5 block text-sm font-medium text-ink-muted;
   }
+
+  .swal2-confirm-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm bg-gold-600 px-6 py-3 text-sm font-medium tracking-wide text-white transition hover:bg-gold-700 mx-1 min-w-[6.5rem];
+  }
+
+  .swal2-confirm-btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm bg-red-600 px-6 py-3 text-sm font-medium tracking-wide text-white transition hover:bg-red-700 mx-1 min-w-[6.5rem];
+  }
+
+  .swal2-cancel-btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-sm border border-gold-400 bg-white px-6 py-3 text-sm font-medium tracking-wide text-gold-700 transition hover:bg-gold-100 mx-1 min-w-[6.5rem];
+  }
 }

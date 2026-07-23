@@ -3,15 +3,15 @@ import "sweetalert2/dist/sweetalert2.min.css";
 
 const base = Swal.mixin({
   buttonsStyling: false,
+  reverseButtons: true,
+  focusConfirm: true,
   customClass: {
-    popup: "rounded-sm font-sans",
-    title: "font-display text-ink text-xl",
-    htmlContainer: "text-ink-muted text-sm",
-    confirmButton:
-      "btn-primary mx-1 min-w-[6rem]",
-    cancelButton:
-      "btn-secondary mx-1 min-w-[6rem]",
-    actions: "gap-2",
+    popup: "rounded-sm font-sans !p-6",
+    title: "font-display text-ink !text-xl",
+    htmlContainer: "text-ink-muted !text-sm",
+    actions: "!mt-5 !gap-2 flex-wrap justify-center",
+    confirmButton: "swal2-confirm-btn",
+    cancelButton: "swal2-cancel-btn",
   },
 });
 
@@ -21,6 +21,7 @@ export async function showSuccess(message: string, title = "Success") {
     title,
     text: message,
     confirmButtonText: "OK",
+    showCancelButton: false,
   });
 }
 
@@ -30,6 +31,7 @@ export async function showError(message: string, title = "Error") {
     title,
     text: message,
     confirmButtonText: "OK",
+    showCancelButton: false,
   });
 }
 
@@ -39,6 +41,7 @@ export async function showInfo(message: string, title = "Notice") {
     title,
     text: message,
     confirmButtonText: "OK",
+    showCancelButton: false,
   });
 }
 
@@ -58,16 +61,15 @@ export async function showConfirm(
     showCancelButton: true,
     confirmButtonText: opts?.confirmText ?? "Yes",
     cancelButtonText: opts?.cancelText ?? "Cancel",
-    reverseButtons: true,
     customClass: {
-      popup: "rounded-sm font-sans",
-      title: "font-display text-ink text-xl",
-      htmlContainer: "text-ink-muted text-sm",
+      popup: "rounded-sm font-sans !p-6",
+      title: "font-display text-ink !text-xl",
+      htmlContainer: "text-ink-muted !text-sm",
+      actions: "!mt-5 !gap-2 flex-wrap justify-center",
       confirmButton: opts?.danger
-        ? "inline-flex items-center justify-center gap-2 rounded-sm bg-red-600 px-6 py-3 text-sm font-medium text-white hover:bg-red-700 mx-1 min-w-[6rem]"
-        : "btn-primary mx-1 min-w-[6rem]",
-      cancelButton: "btn-secondary mx-1 min-w-[6rem]",
-      actions: "gap-2",
+        ? "swal2-confirm-btn-danger"
+        : "swal2-confirm-btn",
+      cancelButton: "swal2-cancel-btn",
     },
   });
 
