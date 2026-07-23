@@ -1,10 +1,14 @@
 import OrdersManager from "@/components/admin/OrdersManager";
 import { createClient } from "@/lib/supabase/server";
-import type { OrderWithDetails } from "@/types/database";
+import type { OrderWithDetails, Product, ProductVariant } from "@/types/database";
 
 interface PageProps {
   searchParams: { status?: string };
 }
+
+export type AdminProductOption = Product & {
+  product_variants: ProductVariant[];
+};
 
 export default async function AdminOrdersPage({ searchParams }: PageProps) {
   const supabase = createClient();
@@ -17,7 +21,13 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
     query = query.eq("status", searchParams.status);
   }
 
-  const { data } = await query;
+  const [{ data }, { data: products }] = await Promise.all([
+    query,
+    supabase
+      .from("products")
+      .select("*, product_variants(*)")
+      .order("title", { ascending: true }),
+  ]);
 
   return (
     <div>
@@ -29,6 +39,7 @@ export default async function AdminOrdersPage({ searchParams }: PageProps) {
         <OrdersManager
           initial={(data || []) as OrderWithDetails[]}
           initialStatus={searchParams.status || "all"}
+          products={(products || []) as AdminProductOption[]}
         />
       </div>
     </div>

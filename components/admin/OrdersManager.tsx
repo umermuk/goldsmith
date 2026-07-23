@@ -17,20 +17,32 @@ import {
   Loader2,
   FileSpreadsheet,
   CheckSquare,
+  Plus,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPKR, ORDER_STATUSES } from "@/lib/format";
 import { showConfirm, showError, showInfo, showSuccess } from "@/lib/swal";
-import type { OrderStatus, OrderWithDetails } from "@/types/database";
+import type {
+  OrderStatus,
+  OrderWithDetails,
+  Product,
+  ProductVariant,
+} from "@/types/database";
 
 const PAGE_SIZE = 25;
+
+type AdminProductOption = Product & {
+  product_variants: ProductVariant[];
+};
 
 export default function OrdersManager({
   initial,
   initialStatus,
+  products = [],
 }: {
   initial: OrderWithDetails[];
   initialStatus: string;
+  products?: AdminProductOption[];
 }) {
   const router = useRouter();
   const [orders, setOrders] = useState(initial);
@@ -39,6 +51,21 @@ export default function OrdersManager({
   const [currentPage, setCurrentPage] = useState(1);
   const [isImporting, setIsImporting] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [showAddOrder, setShowAddOrder] = useState(false);
+  const [creatingOrder, setCreatingOrder] = useState(false);
+  const [addForm, setAddForm] = useState({
+    customer_name: "",
+    phone: "",
+    address: "",
+    city: "",
+    product_id: "",
+    variant_id: "",
+    personalization_text: "",
+    quantity: 1,
+    delivery_charges: 200,
+    status: "pending" as OrderStatus,
+    notes: "",
+  });
 
   const [selectedOrder, setSelectedOrder] = useState<OrderWithDetails | null>(
     null
@@ -292,6 +319,119 @@ export default function OrdersManager({
     if (selectedOrder?.id === id) closeOrderModal();
   }
 
+  const selectedProduct = useMemo(
+    () => products.find((p) => p.id === addForm.product_id) || null,
+    [products, addForm.product_id]
+  );
+
+  const selectedVariant = useMemo(
+    () =>
+      selectedProduct?.product_variants?.find(
+        (v) => v.id === addForm.variant_id
+      ) || null,
+    [selectedProduct, addForm.variant_id]
+  );
+
+  const unitPrice = useMemo(() => {
+    if (!selectedProduct) return 0;
+    if (selectedVariant?.price_override != null) {
+      return Number(selectedVariant.price_override);
+    }
+    return Number(selectedProduct.price);
+  }, [selectedProduct, selectedVariant]);
+
+  const computedTotal = useMemo(() => {
+    return (
+      unitPrice * Number(addForm.quantity || 1) +
+      Number(addForm.delivery_charges || 0)
+    );
+  }, [unitPrice, addForm.quantity, addForm.delivery_charges]);
+
+  function resetAddForm() {
+    setAddForm({
+      customer_name: "",
+      phone: "",
+      address: "",
+      city: "",
+      product_id: "",
+      variant_id: "",
+      personalization_text: "",
+      quantity: 1,
+      delivery_charges: 200,
+      status: "pending",
+      notes: "",
+    });
+  }
+
+  function openAddOrder() {
+    resetAddForm();
+    setShowAddOrder(true);
+  }
+
+  function onProductChange(productId: string) {
+    const product = products.find((p) => p.id === productId);
+    const firstVariant = product?.product_variants?.[0];
+    setAddForm((prev) => ({
+      ...prev,
+      product_id: productId,
+      variant_id: firstVariant?.id || "",
+      delivery_charges: Number(product?.delivery_charges ?? 200),
+      personalization_text: product?.is_personalized
+        ? prev.personalization_text
+        : "",
+    }));
+  }
+
+  async function handleCreateOrder(e: React.FormEvent) {
+    e.preventDefault();
+    if (!addForm.product_id) {
+      await showError("Please select a product.");
+      return;
+    }
+    if (
+      selectedProduct?.is_personalized &&
+      !addForm.personalization_text.trim()
+    ) {
+      await showError("Personalization text is required for this product.");
+      return;
+    }
+
+    setCreatingOrder(true);
+    const supabase = createClient();
+    const payload = {
+      customer_name: addForm.customer_name.trim(),
+      phone: addForm.phone.trim(),
+      address: addForm.address.trim(),
+      city: addForm.city.trim(),
+      product_id: addForm.product_id,
+      variant_id: addForm.variant_id || null,
+      personalization_text: addForm.personalization_text.trim() || null,
+      quantity: Number(addForm.quantity) || 1,
+      delivery_charges: Number(addForm.delivery_charges) || 0,
+      total_price: computedTotal,
+      status: addForm.status,
+      notes: addForm.notes.trim() || "Created by admin",
+    };
+
+    const { data, error } = await supabase
+      .from("orders")
+      .insert(payload)
+      .select("*, products(title, slug), product_variants(variant_name)")
+      .single();
+
+    setCreatingOrder(false);
+
+    if (error || !data) {
+      await showError(error?.message || "Failed to create order.");
+      return;
+    }
+
+    setOrders((prev) => [data as OrderWithDetails, ...prev]);
+    setShowAddOrder(false);
+    resetAddForm();
+    await showSuccess("Order created successfully!");
+  }
+
   // Export Orders to Excel CSV (All, Selected, or Single specific order)
   function exportToExcel(specificOrders?: OrderWithDetails[]) {
     let targetOrders = specificOrders;
@@ -508,6 +648,15 @@ export default function OrdersManager({
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={openAddOrder}
+            className="btn-primary inline-flex items-center gap-1.5 py-1.5 px-3 text-xs"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add Order
+          </button>
+
           {/* Status Filter */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-medium text-ink-muted">Status:</span>
@@ -821,6 +970,250 @@ export default function OrdersManager({
       )}
 
       {/* Order View & Edit Modal */}
+      {/* Add Order Modal */}
+      {showAddOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-sm bg-white p-6 shadow-xl">
+            <div className="mb-5 flex items-start justify-between">
+              <div>
+                <h2 className="font-display text-xl font-semibold text-ink">
+                  Add Order
+                </h2>
+                <p className="mt-1 text-xs text-ink-muted">
+                  Manually create a COD order from admin
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAddOrder(false)}
+                className="text-ink-muted hover:text-ink"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateOrder} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label className="label-field">Customer Name *</label>
+                  <input
+                    className="input-field"
+                    required
+                    value={addForm.customer_name}
+                    onChange={(e) =>
+                      setAddForm((p) => ({
+                        ...p,
+                        customer_name: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="label-field">Phone *</label>
+                  <input
+                    className="input-field"
+                    required
+                    value={addForm.phone}
+                    onChange={(e) =>
+                      setAddForm((p) => ({ ...p, phone: e.target.value }))
+                    }
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label-field">Address *</label>
+                  <textarea
+                    className="input-field min-h-[70px]"
+                    required
+                    value={addForm.address}
+                    onChange={(e) =>
+                      setAddForm((p) => ({ ...p, address: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="label-field">City *</label>
+                  <input
+                    className="input-field"
+                    required
+                    value={addForm.city}
+                    onChange={(e) =>
+                      setAddForm((p) => ({ ...p, city: e.target.value }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="label-field">Status</label>
+                  <select
+                    className="input-field"
+                    value={addForm.status}
+                    onChange={(e) =>
+                      setAddForm((p) => ({
+                        ...p,
+                        status: e.target.value as OrderStatus,
+                      }))
+                    }
+                  >
+                    {ORDER_STATUSES.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label-field">Product *</label>
+                  <select
+                    className="input-field"
+                    required
+                    value={addForm.product_id}
+                    onChange={(e) => onProductChange(e.target.value)}
+                  >
+                    <option value="">Select product</option>
+                    {products.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.title} — {formatPKR(p.price)}
+                        {!p.is_active ? " (hidden)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedProduct &&
+                  (selectedProduct.product_variants?.length ?? 0) > 0 && (
+                    <div>
+                      <label className="label-field">Variant</label>
+                      <select
+                        className="input-field"
+                        value={addForm.variant_id}
+                        onChange={(e) =>
+                          setAddForm((p) => ({
+                            ...p,
+                            variant_id: e.target.value,
+                          }))
+                        }
+                      >
+                        {selectedProduct.product_variants.map((v) => (
+                          <option key={v.id} value={v.id}>
+                            {v.variant_name}
+                            {v.price_override != null
+                              ? ` (${formatPKR(v.price_override)})`
+                              : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                {selectedProduct?.is_personalized && (
+                  <div>
+                    <label className="label-field">Personalization *</label>
+                    <input
+                      className="input-field"
+                      required
+                      value={addForm.personalization_text}
+                      onChange={(e) =>
+                        setAddForm((p) => ({
+                          ...p,
+                          personalization_text: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <label className="label-field">Quantity *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    className="input-field"
+                    required
+                    value={addForm.quantity}
+                    onChange={(e) =>
+                      setAddForm((p) => ({
+                        ...p,
+                        quantity: Math.max(1, parseInt(e.target.value, 10) || 1),
+                      }))
+                    }
+                  />
+                </div>
+                <div>
+                  <label className="label-field">Delivery Charges (PKR)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    className="input-field"
+                    value={addForm.delivery_charges}
+                    onChange={(e) =>
+                      setAddForm((p) => ({
+                        ...p,
+                        delivery_charges: Math.max(
+                          0,
+                          parseFloat(e.target.value) || 0
+                        ),
+                      }))
+                    }
+                  />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="label-field">Notes</label>
+                  <textarea
+                    className="input-field min-h-[60px]"
+                    value={addForm.notes}
+                    onChange={(e) =>
+                      setAddForm((p) => ({ ...p, notes: e.target.value }))
+                    }
+                    placeholder="Optional notes..."
+                  />
+                </div>
+              </div>
+
+              <div className="rounded-sm border border-ivory-300 bg-ivory-50 px-4 py-3 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-ink-muted">
+                    Unit {formatPKR(unitPrice)} × {addForm.quantity} + delivery{" "}
+                    {formatPKR(addForm.delivery_charges)}
+                  </span>
+                  <span className="font-semibold text-ink">
+                    Total: {formatPKR(computedTotal)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={creatingOrder || !products.length}
+                >
+                  {creatingOrder ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Order"
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setShowAddOrder(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+
+              {!products.length && (
+                <p className="text-sm text-red-600">
+                  No products found. Add a product first before creating orders.
+                </p>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
+
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-4">
           <div className="max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-sm bg-white p-6 shadow-2xl">
