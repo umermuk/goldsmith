@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { showConfirm, showError } from "@/lib/swal";
 import { PARENT_CATEGORIES, slugify } from "@/lib/format";
 import type { Category } from "@/types/database";
 
@@ -148,14 +149,18 @@ export default function CategoriesManager({
   }
 
   async function onDelete(cat: Category) {
-    if (!confirm(`Delete category "${cat.name}"?`)) return;
+    const confirmed = await showConfirm(
+      `"${cat.name}" permanently delete ho jayegi.`,
+      { title: "Delete category?", confirmText: "Delete", danger: true }
+    );
+    if (!confirmed) return;
     const supabase = createClient();
     const { error: err } = await supabase
       .from("categories")
       .delete()
       .eq("id", cat.id);
     if (err) {
-      alert(err.message);
+      await showError(err.message);
       return;
     }
     setCategories((prev) => prev.filter((c) => c.id !== cat.id));

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { showConfirm, showError } from "@/lib/swal";
 
 export default function DeleteProductButton({
   id,
@@ -21,19 +22,23 @@ export default function DeleteProductButton({
       .eq("product_id", id);
 
     if (countError) {
-      alert(countError.message);
+      await showError(countError.message);
       return;
     }
 
     const orderCount = count ?? 0;
     const message =
       orderCount > 0
-        ? `"${title}" ke ${orderCount} order(s) bhi permanently delete ho jayenge.\n\nContinue?`
-        : `Delete "${title}"? This cannot be undone.`;
+        ? `"${title}" ke ${orderCount} order(s) bhi permanently delete ho jayenge.`
+        : `"${title}" permanently delete ho jayega.`;
 
-    if (!confirm(message)) return;
+    const confirmed = await showConfirm(message, {
+      title: "Delete product?",
+      confirmText: "Delete",
+      danger: true,
+    });
+    if (!confirmed) return;
 
-    // Remove related orders first (FK blocks product delete otherwise)
     if (orderCount > 0) {
       const { error: ordersError } = await supabase
         .from("orders")
@@ -41,14 +46,14 @@ export default function DeleteProductButton({
         .eq("product_id", id);
 
       if (ordersError) {
-        alert(ordersError.message);
+        await showError(ordersError.message);
         return;
       }
     }
 
     const { error } = await supabase.from("products").delete().eq("id", id);
     if (error) {
-      alert(error.message);
+      await showError(error.message);
       return;
     }
 

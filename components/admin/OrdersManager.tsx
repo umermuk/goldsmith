@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { formatPKR, ORDER_STATUSES } from "@/lib/format";
+import { showConfirm, showError, showInfo, showSuccess } from "@/lib/swal";
 import type { OrderStatus, OrderWithDetails } from "@/types/database";
 
 const PAGE_SIZE = 25;
@@ -218,7 +219,7 @@ export default function OrdersManager({
       .update({ status })
       .eq("id", id);
     if (error) {
-      alert(error.message);
+      await showError(error.message);
       return;
     }
     setOrders((prev) =>
@@ -253,7 +254,7 @@ export default function OrdersManager({
 
     setSaving(false);
     if (error) {
-      alert("Failed to update order: " + error.message);
+      await showError("Failed to update order: " + error.message);
       return;
     }
 
@@ -267,15 +268,19 @@ export default function OrdersManager({
     );
     setSelectedOrder(updatedOrder);
     setIsEditing(false);
-    alert("Order updated successfully!");
+    await showSuccess("Order updated successfully!");
   }
 
   async function handleDeleteOrder(id: string) {
-    if (!confirm("Are you sure you want to delete this order?")) return;
+    const confirmed = await showConfirm(
+      "Yeh order permanently delete ho jayega.",
+      { title: "Delete order?", confirmText: "Delete", danger: true }
+    );
+    if (!confirmed) return;
     const supabase = createClient();
     const { error } = await supabase.from("orders").delete().eq("id", id);
     if (error) {
-      alert(error.message);
+      await showError(error.message);
       return;
     }
     setOrders((prev) => prev.filter((o) => o.id !== id));
@@ -300,7 +305,7 @@ export default function OrdersManager({
     }
 
     if (!targetOrders || !targetOrders.length) {
-      alert("No orders available to export!");
+      void showInfo("No orders available to export!");
       return;
     }
 
@@ -370,7 +375,9 @@ export default function OrdersManager({
       const text = await file.text();
       const lines = text.split(/\r?\n/).filter((l) => l.trim().length > 0);
       if (lines.length < 2) {
-        alert("CSV file must contain a header row and at least 1 order row.");
+        await showError(
+          "CSV file must contain a header row and at least 1 order row."
+        );
         setIsImporting(false);
         return;
       }
@@ -434,7 +441,7 @@ export default function OrdersManager({
       }
 
       if (!ordersToInsert.length) {
-        alert("No valid rows found in CSV.");
+        await showError("No valid rows found in CSV.");
         setIsImporting(false);
         return;
       }
@@ -446,9 +453,9 @@ export default function OrdersManager({
         .select("*, products(title, slug), product_variants(variant_name)");
 
       if (error) {
-        alert("Failed to import orders: " + error.message);
+        await showError("Failed to import orders: " + error.message);
       } else {
-        alert(
+        await showSuccess(
           `Successfully imported ${
             insertedData?.length || ordersToInsert.length
           } orders!`
@@ -459,7 +466,7 @@ export default function OrdersManager({
       }
     } catch (err) {
       console.error("Import error:", err);
-      alert("Error reading Excel/CSV file.");
+      await showError("Error reading Excel/CSV file.");
     } finally {
       setIsImporting(false);
       e.target.value = "";

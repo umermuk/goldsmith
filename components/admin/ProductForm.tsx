@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Loader2, Plus, Trash2, Upload, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { slugify } from "@/lib/format";
+import { showConfirm } from "@/lib/swal";
 import type {
   Category,
   Product,
@@ -104,7 +105,12 @@ export default function ProductForm({
   }
 
   async function removeExistingImage(img: ProductImage) {
-    if (!confirm("Remove this image?")) return;
+    const confirmed = await showConfirm("Yeh image permanently remove ho jayegi.", {
+      title: "Remove image?",
+      confirmText: "Remove",
+      danger: true,
+    });
+    if (!confirmed) return;
     const supabase = createClient();
     await supabase.from("product_images").delete().eq("id", img.id);
     setExistingImages((prev) => prev.filter((i) => i.id !== img.id));

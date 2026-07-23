@@ -19,6 +19,7 @@
     "react": "^18",
     "react-dom": "^18",
     "resend": "^6.17.2",
+    "sweetalert2": "^11.26.25",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
